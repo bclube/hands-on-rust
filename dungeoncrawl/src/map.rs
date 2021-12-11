@@ -22,18 +22,24 @@ impl Map {
         }
     }
 
-    pub fn render(&self, ctx: &mut BTerm) {
-        let floor_tile = to_cp437('.');
-        let wall_tile = to_cp437('#');
-        let mut idx = 0;
-        for y in 0..SCREEN_HEIGHT {
-            for x in 0..SCREEN_WIDTH {
-                //let idx = map_idx(x, y);
-                match self.tiles[idx] {
-                    TileType::Wall => ctx.set(x, y, GREEN, BLACK, wall_tile),
-                    TileType::Floor => ctx.set(x, y, YELLOW, BLACK, floor_tile),
+    pub fn render(&self, ctx: &mut BTerm, camera: &Camera) {
+        ctx.set_active_console(0);
+        for y in camera.top_y..camera.bottom_y {
+            for x in camera.left_x..camera.right_x {
+                if self.in_bounds(Point::new(x, y)) {
+                    let idx = map_idx(x, y);
+                    let char = match self.tiles[idx] {
+                        TileType::Floor => '.',
+                        TileType::Wall => '#',
+                    };
+                    ctx.set(
+                        x - camera.left_x,
+                        y - camera.top_y,
+                        WHITE,
+                        BLACK,
+                        to_cp437(char),
+                    );
                 }
-                idx += 1;
             }
         }
     }
