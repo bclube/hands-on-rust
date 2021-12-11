@@ -25,5 +25,6 @@ pub fn spawn_monster(ecs: &mut World, rng: &mut RandomNumberGenerator, pos: Poin
             color: ColorPair::new(WHITE, BLACK),
             glyph: to_cp437(char),
         },
+        MovingRandomly,
     ));
 }
