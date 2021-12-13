@@ -21,20 +21,41 @@ pub fn player_input(
         }
         _ => return,
     };
-    <(Entity, &Point)>::query()
+    let (player_entity, destination) = <(Entity, &Point)>::query()
         .filter(component::<Player>())
         .iter(ecs)
-        .for_each(|(entity, pos)| {
-            let destination = *pos + delta;
-            if map.can_enter_tile(destination) {
-                commands.push((
-                    (),
-                    WantsToMove {
-                        entity: *entity,
-                        destination,
-                    },
-                ));
-                *turn_state = TurnState::PlayerTurn;
+        .find_map(|(entity, pos)| Some((*entity, *pos + delta)))
+        .unwrap();
+    if !map.can_enter_tile(destination) {
+        return;
+    }
+    *turn_state = TurnState::PlayerTurn;
+    if let Some(enemy) = <(Entity, &Point)>::query()
+        .filter(component::<Enemy>())
+        .iter(ecs)
+        .filter(|(_, pos)| **pos == destination)
+        .find_map(|(entity, pos)| {
+            if *pos == destination {
+                Some(entity)
+            } else {
+                None
             }
-        });
+        })
+    {
+        commands.push((
+            (),
+            WantsToAttack {
+                attacker: player_entity,
+                victim: *enemy,
+            },
+        ));
+    } else {
+        commands.push((
+            (),
+            WantsToMove {
+                entity: player_entity,
+                destination,
+            },
+        ));
+    }
 }
