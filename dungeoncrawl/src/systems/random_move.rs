@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use std::collections::HashMap;
 
 #[system]
 #[write_component(Point)]
@@ -9,8 +10,8 @@ pub fn random_move(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource]
     let others = <(Entity, &Point)>::query()
         .filter(component::<Health>())
         .iter(ecs)
-        .map(|(entity, pos)| (*entity, pos))
-        .collect::<Vec<(Entity, &Point)>>();
+        .map(|(entity, pos)| (pos, *entity))
+        .collect::<HashMap<&Point, Entity>>();
     <(Entity, &Point, &MovingRandomly)>::query()
         .iter(ecs)
         .for_each(|(entity, pos, _)| {
@@ -26,13 +27,7 @@ pub fn random_move(ecs: &mut SubWorld, commands: &mut CommandBuffer, #[resource]
                     break destination;
                 }
             };
-            if let Some(victim) = others.iter().find_map(|(entity, pos)| {
-                if **pos == destination {
-                    Some(entity)
-                } else {
-                    None
-                }
-            }) {
+            if let Some(victim) = others.get(&destination) {
                 commands.push((
                     (),
                     WantsToAttack {
