@@ -25,6 +25,10 @@ pub fn player_input(
             *turn_state = TurnState::PlayerTurn;
             return;
         }
+        Some(VirtualKeyCode::P) => {
+            *turn_state = TurnState::PlayerTurn;
+            return;
+        }
         _ => return,
     };
     if let Some((player_entity, destination)) = <(Entity, &Point)>::query()

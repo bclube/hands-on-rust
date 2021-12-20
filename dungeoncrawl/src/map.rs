@@ -37,4 +37,37 @@ impl Map {
             Some(map_idx(point.x, point.y))
         }
     }
+
+    fn valid_exit(&self, loc: Point, delta: Point) -> Option<usize> {
+        self.try_map_idx(loc + delta)
+    }
+}
+
+impl BaseMap for Map {
+    fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
+        let location = self.index_to_point2d(idx);
+        [
+            Point::new(-1, 0),
+            Point::new(1, 0),
+            Point::new(0, -1),
+            Point::new(0, 1),
+        ]
+        .iter()
+        .filter_map(|delta| self.valid_exit(location, *delta).map(|p| (p, 1.0)))
+        .collect()
+    }
+
+    fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
+        DistanceAlg::Pythagoras.distance2d(self.index_to_point2d(idx1), self.index_to_point2d(idx2))
+    }
+}
+
+impl Algorithm2D for Map {
+    fn dimensions(&self) -> Point {
+        Point::new(SCREEN_WIDTH, SCREEN_HEIGHT)
+    }
+
+    fn in_bounds(&self, pos: Point) -> bool {
+        self.in_bounds(pos)
+    }
 }
