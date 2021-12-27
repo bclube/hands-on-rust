@@ -23,4 +23,9 @@ impl Camera {
         self.top_y = player_position.y - DISPLAY_HEIGHT / 2;
         self.bottom_y = player_position.y + DISPLAY_HEIGHT / 2;
     }
+
+    pub fn in_frame(&self, point: Point) -> bool {
+        (self.left_x..self.right_x).contains(&point.x)
+            && (self.top_y..=self.bottom_y).contains(&point.y)
+    }
 }

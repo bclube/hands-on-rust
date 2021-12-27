@@ -39,7 +39,12 @@ impl Map {
     }
 
     fn valid_exit(&self, loc: Point, delta: Point) -> Option<usize> {
-        self.try_map_idx(loc + delta)
+        let target = loc + delta;
+        if self.can_enter_tile(target) {
+            Some(map_idx(target.x, target.y))
+        } else {
+            None
+        }
     }
 }
 
