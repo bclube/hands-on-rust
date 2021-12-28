@@ -2,6 +2,7 @@ mod camera;
 mod components;
 mod map;
 mod map_builder;
+mod render_helper;
 mod spawner;
 mod systems;
 mod turn_state;
@@ -19,6 +20,7 @@ mod prelude {
     pub use crate::components::*;
     pub use crate::map::*;
     pub use crate::map_builder::*;
+    pub use crate::render_helper::*;
     pub use crate::spawner::*;
     pub use crate::systems::*;
     pub use crate::turn_state::*;
