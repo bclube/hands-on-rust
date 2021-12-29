@@ -11,7 +11,7 @@ pub fn end_turn(ecs: &SubWorld, #[resource] turn_state: &mut TurnState) {
         .iter(ecs)
         .next()
         .unwrap();
-    let current_state = turn_state.clone();
+    let current_state = *turn_state;
     let mut new_state = match turn_state {
         TurnState::AwaitingInput => return,
         TurnState::PlayerTurn => TurnState::MonsterTurn,

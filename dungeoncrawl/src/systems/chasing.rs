@@ -22,7 +22,7 @@ pub fn chasing(#[resource] map: &Map, ecs: &SubWorld, commands: &mut CommandBuff
         .filter(component::<ChasingPlayer>())
         .iter(ecs)
         .for_each(|(entity, pos, fov)| {
-            if !fov.visible_tiles.contains(&player_pos) {
+            if !fov.visible_tiles.contains(player_pos) {
                 return;
             }
             let distance = DistanceAlg::Pythagoras.distance2d(*pos, *player_pos);
