@@ -23,5 +23,7 @@ fn blend_color(fraction: f32, far: (u8, u8, u8), near: (u8, u8, u8)) -> (u8, u8,
 fn blend(fraction: f32, far: u8, near: u8) -> u8 {
     let diff = far as f32 - near as f32;
     let result = near as f32 + fraction * diff;
-    result as u8
+    let min = far.min(near);
+    let max = far.max(near);
+    (result as u8).clamp(min, max)
 }

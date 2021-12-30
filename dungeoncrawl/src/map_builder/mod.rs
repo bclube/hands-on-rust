@@ -1,7 +1,11 @@
+mod automata;
 mod empty;
 mod rooms;
 
+use std::{collections::HashSet, iter};
+
 use crate::prelude::*;
+use automata::CellularAutomataArchitect;
 use empty::EmptyArchitect;
 use rooms::RoomsArchitect;
 
@@ -19,11 +23,24 @@ pub struct MapBuilder {
     pub amulet_start: Point,
 }
 
+impl Default for MapBuilder {
+    fn default() -> Self {
+        Self {
+            map: Map::new(),
+            rooms: Default::default(),
+            monster_spawns: Default::default(),
+            player_start: Point::zero(),
+            amulet_start: Point::zero(),
+        }
+    }
+}
+
 impl MapBuilder {
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
-        let mut architect: Box<dyn MapArchitect> = match rng.range(0, 2) {
+        let mut architect: Box<dyn MapArchitect> = match rng.range(0, 3) {
             0 => Box::new(RoomsArchitect {}),
-            _ => Box::new(EmptyArchitect {}),
+            1 => Box::new(EmptyArchitect {}),
+            _ => Box::new(CellularAutomataArchitect {}),
         };
         architect.new_map(rng)
     }
@@ -121,6 +138,48 @@ impl MapBuilder {
                     self.apply_horizontal_tunnel(prev.x, new.x, new.y);
                 }
             }
+        }
+    }
+
+    fn spawn_monsters(&self, start: &Point, rng: &mut RandomNumberGenerator) -> Vec<Point> {
+        const NUM_MONSTERS: usize = 50;
+
+        let spawnable_tiles = self
+            .map
+            .tiles
+            .iter()
+            .enumerate()
+            .filter_map(|(idx, t)| {
+                let pos = self.map.index_to_point2d(idx);
+                if *t == TileType::Floor && DistanceAlg::Pythagoras.distance2d(*start, pos) > 10.0 {
+                    Some(pos)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        let mut seen = HashSet::new();
+        iter::repeat_with(|| rng.random_slice_index(&spawnable_tiles).unwrap())
+            .filter_map(|v| {
+                if seen.insert(v) {
+                    Some(spawnable_tiles[v])
+                } else {
+                    None
+                }
+            })
+            .take(NUM_MONSTERS)
+            .collect()
+    }
+
+    pub fn add_outside_walls(&mut self) {
+        for y in 0..SCREEN_HEIGHT {
+            self.map.tiles[map_idx(0, y)] = TileType::Wall;
+            self.map.tiles[map_idx(SCREEN_WIDTH - 1, y)] = TileType::Wall;
+        }
+        for x in 0..SCREEN_WIDTH {
+            self.map.tiles[map_idx(x, 0)] = TileType::Wall;
+            self.map.tiles[map_idx(x, SCREEN_HEIGHT - 1)] = TileType::Wall;
         }
     }
 }
