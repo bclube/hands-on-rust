@@ -1,5 +1,6 @@
 mod automata;
 mod drunkard;
+mod prefab;
 mod rooms;
 
 use std::{collections::HashSet, iter};
@@ -8,6 +9,8 @@ use crate::prelude::*;
 use automata::CellularAutomataArchitect;
 use drunkard::DrunkardsWalkArchitect;
 use rooms::RoomsArchitect;
+
+use self::prefab::apply_prefab;
 
 const NUM_ROOMS: usize = 20;
 
@@ -42,7 +45,9 @@ impl MapBuilder {
             1 => Box::new(CellularAutomataArchitect {}),
             _ => Box::new(DrunkardsWalkArchitect {}),
         };
-        architect.new_map(rng)
+        let mut mb = architect.new_map(rng);
+        apply_prefab(&mut mb, rng);
+        mb
     }
 
     fn fill(&mut self, tile: TileType) {
