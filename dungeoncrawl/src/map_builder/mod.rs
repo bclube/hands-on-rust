@@ -1,12 +1,12 @@
 mod automata;
-mod empty;
+mod drunkard;
 mod rooms;
 
 use std::{collections::HashSet, iter};
 
 use crate::prelude::*;
 use automata::CellularAutomataArchitect;
-use empty::EmptyArchitect;
+use drunkard::DrunkardsWalkArchitect;
 use rooms::RoomsArchitect;
 
 const NUM_ROOMS: usize = 20;
@@ -39,14 +39,14 @@ impl MapBuilder {
     pub fn new(rng: &mut RandomNumberGenerator) -> Self {
         let mut architect: Box<dyn MapArchitect> = match rng.range(0, 3) {
             0 => Box::new(RoomsArchitect {}),
-            1 => Box::new(EmptyArchitect {}),
-            _ => Box::new(CellularAutomataArchitect {}),
+            1 => Box::new(CellularAutomataArchitect {}),
+            _ => Box::new(DrunkardsWalkArchitect {}),
         };
         architect.new_map(rng)
     }
 
     fn fill(&mut self, tile: TileType) {
-        self.map.tiles.iter_mut().for_each(|t| *t = tile);
+        self.map.tiles.fill(tile);
     }
 
     fn find_most_distant(&self) -> Point {
