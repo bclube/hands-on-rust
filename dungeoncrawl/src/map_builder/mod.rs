@@ -2,6 +2,7 @@ mod automata;
 mod drunkard;
 mod prefab;
 mod rooms;
+mod themes;
 
 use std::{collections::HashSet, iter};
 
@@ -10,9 +11,16 @@ use automata::CellularAutomataArchitect;
 use drunkard::DrunkardsWalkArchitect;
 use rooms::RoomsArchitect;
 
-use self::prefab::apply_prefab;
+use self::{
+    prefab::apply_prefab,
+    themes::{DungeonTheme, ForestTheme},
+};
 
 const NUM_ROOMS: usize = 20;
+
+pub trait MapTheme: Sync + Send {
+    fn tile_to_render(&self, tile_type: TileType) -> FontCharType;
+}
 
 trait MapArchitect {
     fn new_map(&mut self, rng: &mut RandomNumberGenerator) -> MapBuilder;
@@ -24,6 +32,7 @@ pub struct MapBuilder {
     pub monster_spawns: Vec<Point>,
     pub player_start: Point,
     pub amulet_start: Point,
+    pub theme: Box<dyn MapTheme>,
 }
 
 impl Default for MapBuilder {
@@ -34,6 +43,7 @@ impl Default for MapBuilder {
             monster_spawns: Default::default(),
             player_start: Point::zero(),
             amulet_start: Point::zero(),
+            theme: DungeonTheme::new_theme(),
         }
     }
 }
@@ -47,6 +57,10 @@ impl MapBuilder {
         };
         let mut mb = architect.new_map(rng);
         apply_prefab(&mut mb, rng);
+        mb.theme = match rng.range(0, 2) {
+            0 => DungeonTheme::new_theme(),
+            _ => ForestTheme::new_theme(),
+        };
         mb
     }
 

@@ -4,7 +4,12 @@ use crate::prelude::*;
 #[read_component(FieldOfView)]
 #[read_component(Point)]
 #[read_component(Player)]
-pub fn map_render(ecs: &SubWorld, #[resource] map: &Map, #[resource] camera: &Camera) {
+pub fn map_render(
+    ecs: &SubWorld,
+    #[resource] map: &Map,
+    #[resource] camera: &Camera,
+    #[resource] theme: &Box<dyn MapTheme>,
+) {
     let (player_fov, player_pos) = <(&FieldOfView, &Point)>::query()
         .filter(component::<Player>())
         .iter(ecs)
@@ -12,8 +17,8 @@ pub fn map_render(ecs: &SubWorld, #[resource] map: &Map, #[resource] camera: &Ca
         .unwrap();
     let mut draw_batch = DrawBatch::new();
     draw_batch.target(0);
-    let floor_glyph = to_cp437('.');
-    let wall_glyph = to_cp437('#');
+    let floor_glyph = theme.tile_to_render(TileType::Floor);
+    let wall_glyph = theme.tile_to_render(TileType::Wall);
     for y in camera.top_y..=camera.bottom_y {
         for x in camera.left_x..=camera.right_x {
             let pt = Point::new(x, y);
