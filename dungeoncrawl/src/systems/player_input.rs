@@ -5,6 +5,8 @@ use crate::prelude::*;
 #[read_component(Player)]
 #[read_component(Enemy)]
 #[write_component(Health)]
+#[read_component(Item)]
+#[read_component(Carried)]
 pub fn player_input(
     ecs: &mut SubWorld,
     commands: &mut CommandBuffer,
@@ -12,6 +14,7 @@ pub fn player_input(
     #[resource] key: &Option<VirtualKeyCode>,
     #[resource] turn_state: &mut TurnState,
 ) {
+    let mut player_query = <(Entity, &Point)>::query().filter(component::<Player>());
     let delta = match key {
         Some(VirtualKeyCode::Up) => Point::new(0, -1),
         Some(VirtualKeyCode::Down) => Point::new(0, 1),
@@ -29,10 +32,22 @@ pub fn player_input(
             *turn_state = TurnState::PlayerTurn;
             return;
         }
+        Some(VirtualKeyCode::G) => {
+            if let Some((player, player_pos)) = player_query.iter(ecs).next() {
+                <(Entity, &Point)>::query()
+                    .filter(component::<Item>())
+                    .iter(ecs)
+                    .filter(|(_entity, &item_pos)| item_pos == *player_pos)
+                    .for_each(|(entity, _item_pos)| {
+                        commands.remove_component::<Point>(*entity);
+                        commands.add_component(*entity, Carried(*player));
+                    })
+            };
+            return;
+        }
         _ => return,
     };
-    if let Some((player_entity, destination)) = <(Entity, &Point)>::query()
-        .filter(component::<Player>())
+    if let Some((player_entity, destination)) = player_query
         .iter(ecs)
         .find_map(|(entity, pos)| Some((*entity, *pos + delta)))
     {
